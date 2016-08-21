@@ -33,14 +33,12 @@ def handleSearchResponse(membershipType, user):
     
 def charInfo(user):
     global charChoice
+    tree.delete(*tree.get_children())
     handleProgressData(str(charChoice.get()), user)
 
 def handleProgressData(charChoice, user):
     global tree
-    print charChoice
-    print charDict[charChoice]
     res = requests.get("https://www.bungie.net/Platform/Destiny/" + str(membershipType.get()) + "/Account/" + user + "/Character/" + charDict[charChoice] + "/Progression/", headers=HEADERS)
-    print "https://www.bungie.net/Platform/Destiny/" + str(membershipType.get()) + "/Account/" + str(displayName.get()) + "/Character/" + charDict[charChoice] + "/Progression/"
     progressData = res.json()["Response"]["data"]["progressions"]
 
     for i in range(34):
@@ -51,8 +49,6 @@ def handleProgressData(charChoice, user):
             tree.insert("", 0, values=("%s" % vendorDict.get(int(progressData[i]["progressionHash"]), str(progressData[i]["progressionHash"])), str(progressData[i]["level"]), str(progressData[i]["progressToNextLevel"])))
         
 def gatherInfo():
-    print membershipType.get()
-    print displayName.get()
     searchForMembership(str(membershipType.get()), str(displayName.get()))
         
 if __name__ == '__main__':
@@ -79,6 +75,3 @@ if __name__ == '__main__':
     tree.grid(row=1)
 
     root.mainloop()
-    
-
-
