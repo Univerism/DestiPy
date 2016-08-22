@@ -1,14 +1,23 @@
 import requests
 from Tkinter import *
 import ttk
-root = Tk() 
+root = Tk()
+content = ttk.Frame(root, padding=(3,3,12,12))
 
 API_KEY = 'YOUR API KEY'
 HEADERS = {"X-API-Key": API_KEY}
 
 charDict = {}
-vendorDict = {3871980777: 'New Monarchy', 529303302: 'Cryptarch', 2161005788: 'Iron Banner', 452808717: 'Queen', 3233510749: 'Vanguard', 1357277120: 'Crucible', 2778795080: 'Dead Orbit', 1424722124: 'Future War Cult', 1716568313: 'Character Level', 2335631936: 'Gunsmith', 3641985238: 'House of Judgment', 174528503: 'Crota\'s Bane', }
 progessDict = {}
+vendorDict = {1707948164: 'Moon Chests', 3298204156: 'Character EXP', 2158037182: 'Venus Chests',
+              807090922: 'Queen', 3186678724: 'Calcified Fragments', 45089664: 'Terminals',
+              2175864601: 'Moments of Triumph', 2060414935: 'Base Item Level', 2030054750: 'Character Prestige',
+              1774654531: 'Cosmodrome Chests', 3871980777: 'New Monarchy', 529303302: 'Cryptarch',
+              2161005788: 'Iron Banner', 452808717: 'Queen', 3233510749: 'Vanguard', 1357277120: 'Crucible',
+              2778795080: 'Dead Orbit', 1424722124: 'Future War Cult', 1716568313: 'Character Level',
+              2335631936: 'Gunsmith', 3641985238: 'House of Judgment', 174528503: 'Crota\'s Bane',
+              2763619072: 'SRL Racing', 2193513588: 'Mars Chests', 2033897742: 'Vanguard Marks',
+              594203991: 'Iron Banner Medallions'}
 
 def searchForMembership(membershipType, displayName):
     res = requests.get("https://www.bungie.net/Platform/Destiny/SearchDestinyPlayer/" + membershipType + "/" + displayName, headers=HEADERS)
@@ -23,24 +32,25 @@ def handleSearchResponse(membershipType, user):
     charData = res.json()["Response"]["data"]["characters"]
     for char in charData:
         if str(char["characterBase"]["classHash"]) == "3655393761":
-            charDict['titan'] = str(char["characterBase"]["characterId"])
+            charDict['Titan'] = str(char["characterBase"]["characterId"])
         if str(char["characterBase"]["classHash"]) == "671679327":
-            charDict['hunter'] = str(char["characterBase"]["characterId"]) 
+            charDict['Hunter'] = str(char["characterBase"]["characterId"])
+        if str(char["characterBase"]["classHash"]) == "2271682572":
+            charDict['Warlock'] = str(char["characterBase"]["characterId"])    
 
-    
-    f = Entry(root, textvariable=charChoice).grid(row=1, column=2)
-    Button(root, text="Select", command=lambda: charInfo(user)).grid(row=1, column=3)
+    Label(searchFrame, text="Select Character: ").grid(row=0, column=4)
+    f = ttk.Combobox(searchFrame, values=charDict.keys(), textvariable=charChoice).grid(row=0, column=5)
+    Button(searchFrame, text="Select", command=lambda: charInfo(user)).grid(row=0, column=6, padx=5)
     
 def charInfo(user):
-    global charChoice
-    tree.delete(*tree.get_children())
+        
     handleProgressData(str(charChoice.get()), user)
 
 def handleProgressData(charChoice, user):
     global tree
     res = requests.get("https://www.bungie.net/Platform/Destiny/" + str(membershipType.get()) + "/Account/" + user + "/Character/" + charDict[charChoice] + "/Progression/", headers=HEADERS)
     progressData = res.json()["Response"]["data"]["progressions"]
-
+    tree.delete(*tree.get_children())
     for i in range(34):
         
         if int(progressData[i]["level"]) <= 1 and int(progressData[i]["progressToNextLevel"]) == 0:
@@ -48,22 +58,19 @@ def handleProgressData(charChoice, user):
         else:
             tree.insert("", 0, values=("%s" % vendorDict.get(int(progressData[i]["progressionHash"]), str(progressData[i]["progressionHash"])), str(progressData[i]["level"]), str(progressData[i]["progressToNextLevel"])))
         
-def gatherInfo():
-    searchForMembership(str(membershipType.get()), str(displayName.get()))
-        
 if __name__ == '__main__':
-    
-    
     charChoice = StringVar()
     membershipType = IntVar()
     displayName = StringVar()
-    e = Entry(root, textvariable=displayName).grid(row=0, column=2)
-    
-    Radiobutton(root, text="Xbox", variable=membershipType, value=1).grid(row=0, column=0)
-    Radiobutton(root, text="PS", variable=membershipType, value=2).grid(row=0, column=1)
-    Button(root, text="Search", command=gatherInfo).grid(row=0, column=3)
+    content.grid(column=0,row=0)
+    searchFrame = Frame(content)
+    searchFrame.grid(row=0, column=0, columnspan=8, pady=5, sticky=W)
+    Radiobutton(searchFrame, text="Xbox", variable=membershipType, value=1).grid(row=0, column=0)
+    Radiobutton(searchFrame, text="PS", variable=membershipType, value=2).grid(row=0, column=1)
+    e = Entry(searchFrame, textvariable=displayName).grid(row=0, column=2)
+    Button(searchFrame, text="Search", command=lambda: searchForMembership(str(membershipType.get()), str(displayName.get()))).grid(row=0, column=3, padx=5)
  
-    tree = ttk.Treeview(root, columns=3, show="headings")
+    tree = ttk.Treeview(content, columns=3, show="headings")
  
     tree["columns"]=("vendors", "level", "progress")
     tree.column("vendors")
